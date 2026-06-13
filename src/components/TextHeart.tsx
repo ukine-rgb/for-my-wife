@@ -76,13 +76,23 @@ export default function TextHeart() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.font = `${fontSize}px "Fira Code", monospace`;
       
+      const pulse = 0.5 + 0.5 * Math.sin(time * 0.002);
+
       points.forEach(p => {
         if (elapsed > p.delay) {
             p.alpha += (p.targetAlpha - p.alpha) * 0.02;
         }
 
+        const glow = 8 + pulse * 18;
+        ctx.shadowColor = '#ff003c';
+        ctx.shadowBlur = glow;
         ctx.fillStyle = `rgba(255, 77, 109, ${p.alpha})`;
         ctx.fillText(text, p.x - ctx.measureText(text).width / 2, p.y);
+        // second pass for intensity
+        ctx.shadowBlur = glow * 2;
+        ctx.fillStyle = `rgba(255, 77, 109, ${p.alpha * 0.4})`;
+        ctx.fillText(text, p.x - ctx.measureText(text).width / 2, p.y);
+        ctx.shadowBlur = 0;
       });
 
       animationFrameId = requestAnimationFrame(draw);

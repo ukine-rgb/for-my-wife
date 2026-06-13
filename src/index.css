@@ -28,7 +28,11 @@
 }
 
 .glow-text {
-  text-shadow: 0 0 10px rgba(255, 77, 109, 0.5), 0 0 20px rgba(255, 77, 109, 0.3);
+  text-shadow:
+    0 0 6px #fff,
+    0 0 12px #ff4d6d,
+    0 0 28px #ff003c,
+    0 0 55px #ff003c;
 }
 
 .scanline {
