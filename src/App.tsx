@@ -26,16 +26,22 @@ export default function App() {
   const [stage, setStage] = useState<'console' | 'generator' | 'reveal'>('console');
   const [consoleFinished, setConsoleFinished] = useState(false);
   const [decodedMessage, setDecodedMessage] = useState<string>("");
+  const [recipientName, setRecipientName] = useState<string>("");
   const [inputMessage, setInputMessage] = useState<string>("");
+  const [inputName, setInputName] = useState<string>("");
   const [generatedUrl, setGeneratedUrl] = useState<string>("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const q = params.get('q');
+    const n = params.get('n');
     if (q) {
       try {
         const decoded = atob(q);
         setDecodedMessage(decodeURIComponent(decoded));
+        if (n) {
+          setRecipientName(decodeURIComponent(atob(n)));
+        }
       } catch (e) {
         console.error('Failed to decode base64 message:', e);
         setStage('generator');
@@ -44,6 +50,12 @@ export default function App() {
       setStage('generator');
     }
   }, []);
+
+  useEffect(() => {
+    if (recipientName) {
+      document.title = `For You, ${recipientName}`;
+    }
+  }, [recipientName]);
 
   const handleReveal = useCallback(() => {
     if (stage === 'console' && consoleFinished) {
@@ -76,6 +88,19 @@ export default function App() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-white/60 mb-2 text-xs uppercase tracking-widest">
+                    Recipient Name
+                  </label>
+                  <input
+                    type="text"
+                    value={inputName}
+                    onChange={(e) => setInputName(e.target.value)}
+                    placeholder="Enter recipient name..."
+                    className="w-full bg-white/5 border border-pink-deep/20 rounded px-4 py-2 text-white placeholder-white/30 focus:outline-none focus:border-pink-deep/50"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-white/60 mb-2 text-xs uppercase tracking-widest">
                     Your Message
                   </label>
                   <textarea
@@ -90,7 +115,8 @@ export default function App() {
                   onClick={() => {
                     if (inputMessage.trim()) {
                       const encoded = btoa(encodeURIComponent(inputMessage));
-                      const url = `${window.location.origin}${window.location.pathname}?q=${encoded}`;
+                      const nameParam = inputName.trim() ? `&n=${btoa(encodeURIComponent(inputName.trim()))}` : '';
+                      const url = `${window.location.origin}${window.location.pathname}?q=${encoded}${nameParam}`;
                       setGeneratedUrl(url);
                     }
                   }}
@@ -214,7 +240,7 @@ export default function App() {
               className="z-20 text-center"
             >
               <h2 className="text-pink-deep font-mono text-xl tracking-[0.3em] uppercase glow-text mb-2">
-                Decrypted
+                For You{recipientName && <>, {recipientName}</>}
               </h2>
               <div className="w-12 h-px bg-pink-deep/30 mx-auto mb-8" />
               
