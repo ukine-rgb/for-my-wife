@@ -239,9 +239,6 @@ export default function App() {
               transition={{ delay: 3, duration: 1.5 }}
               className="z-20 text-center"
             >
-              <h2 className="text-pink-deep font-mono text-xl tracking-[0.3em] uppercase glow-text mb-2">
-                For You{recipientName && <>, {recipientName}</>}
-              </h2>
               <div className="w-12 h-px bg-pink-deep/30 mx-auto mb-8" />
               
               <motion.button
