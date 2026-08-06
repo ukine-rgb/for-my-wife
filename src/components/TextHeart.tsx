@@ -8,7 +8,7 @@ interface Point {
   delay: number;
 }
 
-export default function TextHeart() {
+export default function TextHeart({ blur = false }: { blur?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {

@@ -27,20 +27,26 @@ export default function App() {
   const [consoleFinished, setConsoleFinished] = useState(false);
   const [decodedMessage, setDecodedMessage] = useState<string>("");
   const [recipientName, setRecipientName] = useState<string>("");
+  const [longMessage, setLongMessage] = useState<string>("");
   const [inputMessage, setInputMessage] = useState<string>("");
   const [inputName, setInputName] = useState<string>("");
+  const [inputLongMessage, setInputLongMessage] = useState<string>("");
   const [generatedUrl, setGeneratedUrl] = useState<string>("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const q = params.get('q');
     const n = params.get('n');
+    const m = params.get('m');
     if (q) {
       try {
         const decoded = atob(q);
         setDecodedMessage(decodeURIComponent(decoded));
         if (n) {
           setRecipientName(decodeURIComponent(atob(n)));
+        }
+        if (m) {
+          setLongMessage(decodeURIComponent(atob(m)));
         }
       } catch (e) {
         console.error('Failed to decode base64 message:', e);
@@ -110,13 +116,26 @@ export default function App() {
                     className="w-full bg-white/5 border border-pink-deep/20 rounded p-4 text-white placeholder-white/30 focus:outline-none focus:border-pink-deep/50 min-h-[120px] resize-none"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-white/60 mb-2 text-xs uppercase tracking-widest">
+                    Long Message (Optional)
+                  </label>
+                  <textarea
+                    value={inputLongMessage}
+                    onChange={(e) => setInputLongMessage(e.target.value)}
+                    placeholder="Enter a longer message to be typed out..."
+                    className="w-full bg-white/5 border border-pink-deep/20 rounded p-4 text-white placeholder-white/30 focus:outline-none focus:border-pink-deep/50 min-h-[120px] resize-none"
+                  />
+                </div>
                 
                 <button
                   onClick={() => {
                     if (inputMessage.trim()) {
                       const encoded = btoa(encodeURIComponent(inputMessage));
                       const nameParam = inputName.trim() ? `&n=${btoa(encodeURIComponent(inputName.trim()))}` : '';
-                      const url = `${window.location.origin}${window.location.pathname}?q=${encoded}${nameParam}`;
+                      const longMessageParam = inputLongMessage.trim() ? `&m=${btoa(encodeURIComponent(inputLongMessage.trim()))}` : '';
+                      const url = `${window.location.origin}${window.location.pathname}?q=${encoded}${nameParam}${longMessageParam}`;
                       setGeneratedUrl(url);
                     }
                   }}
@@ -231,15 +250,28 @@ export default function App() {
             animate={{ opacity: 1 }}
             className="relative w-full h-screen flex items-center justify-center overflow-hidden"
           >
-            <TextHeart />
+            <div>
+              <TextHeart />
+            </div>
             
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 3, duration: 1.5 }}
+              transition={{ delay: 4.5, duration: 1.5 }}
               className="z-20 text-center"
             >
               <div className="w-12 h-px bg-pink-deep/30 mx-auto mb-8" />
+              
+              {longMessage && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 5, duration: 1 }}
+                  className="mb-8 px-4"
+                >
+                  <Typewriter text={longMessage} delay={30} />
+                </motion.div>
+              )}
               
               <motion.button
                 onClick={(e) => {
