@@ -23,8 +23,27 @@ const Typewriter = ({ text, delay = 50, onComplete }: { text: string, delay?: nu
 };
 
 export default function App() {
-  const [stage, setStage] = useState<'console' | 'reveal'>('console');
+  const [stage, setStage] = useState<'console' | 'generator' | 'reveal'>('console');
   const [consoleFinished, setConsoleFinished] = useState(false);
+  const [decodedMessage, setDecodedMessage] = useState<string>("");
+  const [inputMessage, setInputMessage] = useState<string>("");
+  const [generatedUrl, setGeneratedUrl] = useState<string>("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('q');
+    if (q) {
+      try {
+        const decoded = atob(q);
+        setDecodedMessage(decodeURIComponent(decoded));
+      } catch (e) {
+        console.error('Failed to decode base64 message:', e);
+        setStage('generator');
+      }
+    } else {
+      setStage('generator');
+    }
+  }, []);
 
   const handleReveal = useCallback(() => {
     if (stage === 'console' && consoleFinished) {
@@ -40,7 +59,78 @@ export default function App() {
       <div className="scanline" />
       
       <AnimatePresence mode="wait">
-        {stage === 'console' ? (
+        {stage === 'generator' ? (
+          <motion.div
+            key="generator"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="relative w-full max-w-2xl p-8 font-mono text-sm md:text-base text-white/80"
+          >
+            <div className="space-y-6">
+              <div className="flex gap-2 text-pink-soft/60">
+                <span>[generator]</span>
+                <span>Create encrypted message link</span>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-white/60 mb-2 text-xs uppercase tracking-widest">
+                    Your Message
+                  </label>
+                  <textarea
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    placeholder="Enter your secret message..."
+                    className="w-full bg-white/5 border border-pink-deep/20 rounded p-4 text-white placeholder-white/30 focus:outline-none focus:border-pink-deep/50 min-h-[120px] resize-none"
+                  />
+                </div>
+                
+                <button
+                  onClick={() => {
+                    if (inputMessage.trim()) {
+                      const encoded = btoa(encodeURIComponent(inputMessage));
+                      const url = `${window.location.origin}${window.location.pathname}?q=${encoded}`;
+                      setGeneratedUrl(url);
+                    }
+                  }}
+                  className="group flex items-center gap-3 px-6 py-3 border border-pink-deep/30 bg-pink-deep/5 hover:bg-pink-deep/10 text-pink-soft transition-all duration-300"
+                >
+                  <Sparkles size={16} className="group-hover:rotate-12 transition-transform" />
+                  <span className="font-mono tracking-widest uppercase text-xs">Generate Link</span>
+                </button>
+                
+                {generatedUrl && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-2"
+                  >
+                    <label className="block text-white/60 text-xs uppercase tracking-widest">
+                      Your Encrypted Link
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={generatedUrl}
+                        readOnly
+                        className="flex-1 bg-white/5 border border-pink-deep/20 rounded px-4 py-2 text-white/80 text-xs"
+                      />
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(generatedUrl);
+                        }}
+                        className="px-4 py-2 border border-pink-deep/30 bg-pink-deep/5 hover:bg-pink-deep/10 text-pink-soft transition-all duration-300 text-xs uppercase tracking-widest"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        ) : stage === 'console' ? (
           <motion.div
             key="console"
             initial={{ opacity: 0 }}
@@ -58,6 +148,13 @@ export default function App() {
                 />
               </div>
               
+              {decodedMessage && (
+                <div className="flex gap-2 text-yellow-300">
+                  <span>[message]</span>
+                  <span>{decodedMessage}</span>
+                </div>
+              )}
+
               <div className="flex gap-2 h-6">
                 <span>[status]</span>
                 {consoleFinished && (
